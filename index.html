@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>Acompanhamento Alimentar Infantil</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff7a00">
+<!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<style>
+  body {
+    font-family: "Comic Sans MS", Arial, sans-serif;
+    margin: 0;
+    padding: 16px;
+    background: #fff6e5;
+  }
+
+  h1 {
+    text-align: center;
+    color: #ff7a00;
+    margin-bottom: 6px;
+  }
+
+  p {
+    text-align: center;
+    margin-top: 0;
+    color: #555;
+  }
+
+  .topo {
+    max-width: 900px;
+    margin: auto;
+    text-align: center;
+  }
+
+  .campo-nome {
+    margin: 12px 0;
+  }
+
+  input[type="text"] {
+    padding: 10px;
+    width: 90%;
+    max-width: 300px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    text-align: center;
+  }
+
+  button {
+    margin: 8px 6px;
+    padding: 12px 20px;
+    font-size: 15px;
+    background: #4caf50;
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+  }
+
+  button.imprimir {
+    background: #2196f3;
+  }
+
+  .table-container {
+    overflow-x: auto;
+    max-width: 100%;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+  }
+
+  th, td {
+    border: 1px solid #e0e0e0;
+    padding: 8px;
+    text-align: center;
+  }
+
+  th {
+    background: #ffd54f;
+    color: #333;
+    font-size: 14px;
+  }
+
+  td:first-child {
+    text-align: left;
+    font-weight: bold;
+    min-width: 220px;
+    background: #fffde7;
+  }
+
+  input[type="checkbox"] {
+    width: 26px;
+    height: 26px;
+  }
+
+  /* ===== IMPRESSÃO ===== */
+  @media print {
+  button {
+    display: none;
+  }
+
+  /* Esconde somente os checkboxes */
+  input[type="checkbox"] {
+    display: none;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  /* Estilo do nome na impressão */
+  #nomeCrianca {
+    display: inline-block;
+    border: none;
+    border-bottom: 2px solid #000;
+    border-radius: 0;
+    font-size: 16px;
+    font-weight: bold;
+    background: transparent;
+    padding: 2px 4px;
+  }
+
+  td {
+    position: relative;
+  }
+
+  /* Símbolos na impressão */
+  td span::after {
+    content: "—";
+    font-size: 14px;
+    font-weight: bold;
+    color: #999;
+  }
+
+  td input:checked + span::after {
+    content: "✔";
+    color: #2e7d32;
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="topo">
+  <h1>🍎 Acompanhamento Alimentar</h1>
+  <p>Controle semanal de hábitos alimentares</p>
+
+  <div class="campo-nome">
+    <input type="text" id="nomeCrianca" placeholder="Nome da criança">
+  </div>
+
+  <button class="imprimir" onclick="window.print()">🖨️ Imprimir</button>
+</div>
+
+<br>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Hábito</th>
+        <th>Dom</th>
+        <th>Seg</th>
+        <th>Ter</th>
+        <th>Qua</th>
+        <th>Qui</th>
+        <th>Sex</th>
+        <th>Sáb</th>
+      </tr>
+    </thead>
+    <tbody id="tabela-habitos"></tbody>
+  </table>
+</div>
+
+<script>
+  const { jsPDF } = window.jspdf;
+
+  const habitos = [
+    "👨‍👩‍👧 Refeição em família",
+    "🍽️ Experimentou alimento novo",
+    "🥦 Comeu verduras e legumes",
+    "💧 Bebeu água ao longo do dia",
+    "👩‍🍳 Ajudou a preparar a refeição",
+    "📝 Planejou as refeições",
+    "⏰ Comeu no horário combinado",
+    "🗣️ Falou se gostou da comida"
+  ];
+
+  const dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"];
+  const tabela = document.getElementById("tabela-habitos");
+  const nomeInput = document.getElementById("nomeCrianca");
+
+  // Nome salvo
+  nomeInput.value = localStorage.getItem("nomeCrianca") || "";
+  nomeInput.addEventListener("input", () => {
+    localStorage.setItem("nomeCrianca", nomeInput.value);
+  });
+
+  // Montar tabela
+  habitos.forEach((habito, i) => {
+    const tr = document.createElement("tr");
+
+    const tdHabito = document.createElement("td");
+    tdHabito.textContent = habito;
+    tr.appendChild(tdHabito);
+
+    dias.forEach((_, d) => {
+      const td = document.createElement("td");
+
+      const cb = document.createElement("input");
+      cb.type = "checkbox";
+
+      const span = document.createElement("span");
+
+      const key = `habito_${i}_dia_${d}`;
+      cb.checked = localStorage.getItem(key) === "1";
+
+      cb.addEventListener("change", () => {
+        localStorage.setItem(key, cb.checked ? "1" : "0");
+      });
+
+      td.appendChild(cb);
+      td.appendChild(span);
+      tr.appendChild(td);
+    });
+
+    tabela.appendChild(tr);
+  });
+
+  // PDF (inalterado)
+  function gerarPDF() {
+    const pdf = new jsPDF("landscape", "mm", "a4");
+
+    const nome = nomeInput.value || "__________";
+
+    pdf.setFontSize(16);
+    pdf.text("Acompanhamento Alimentar Semanal", 14, 15);
+
+    pdf.setFontSize(11);
+    pdf.text("Criança: " + nome, 14, 22);
+    pdf.text("Data: " + new Date().toLocaleDateString("pt-BR"), 14, 28);
+
+    let y = 38;
+    pdf.setFontSize(9);
+
+    habitos.forEach((habito, i) => {
+      const texto = habito.replace(/[^a-zA-ZÀ-ÿ0-9\s]/g, "");
+      pdf.text(texto, 14, y);
+
+      dias.forEach((_, d) => {
+        const key = `habito_${i}_dia_${d}`;
+        pdf.text(
+          localStorage.getItem(key) === "1" ? "✔" : "—",
+          110 + d * 15,
+          y
+        );
+      });
+
+      y += 8;
+      if (y > 190) {
+        pdf.addPage();
+        y = 20;
+      }
+    });
+
+    pdf.save("acompanhamento-alimentar-" + nome + ".pdf");
+  }
+
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker
+        .register("service-worker.js")
+        .then(() => console.log("PWA registrado com sucesso"))
+        .catch(err => console.error("Erro no PWA:", err));
+    });
+  }
+</script>
+
+</body>
+</html>
