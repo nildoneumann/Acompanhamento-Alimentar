@@ -1,5 +1,5 @@
 {
-  "name": "Acompanhamento Alimentar Infantil",
+  "name": "Acompanhamento Alimentar",
   "short_name": "Alimentação",
   "start_url": "./index.html",
   "display": "standalone",
@@ -19,3 +19,4 @@
     }
   ]
 }
+
