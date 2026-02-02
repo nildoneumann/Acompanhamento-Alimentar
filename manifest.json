@@ -1,7 +1,7 @@
 {
   "name": "Acompanhamento Alimentar Infantil",
   "short_name": "Alimentação",
-  "start_url": "./index.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#fff6e5",
   "theme_color": "#ff7a00",
@@ -19,5 +19,6 @@
     }
   ]
 }
+
 
 
